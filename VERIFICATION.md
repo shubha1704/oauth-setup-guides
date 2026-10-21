@@ -28,7 +28,7 @@ Checked the guide against the applications page the agent read.
 - **Review claim:** the guide said "no platform review: none stated". The review page the agent tried (`.../integration-partner-program/app-review`) returned "page not found" when opened by hand, so the model had guessed the URL. "No review" was therefore an absence of evidence, not a confirmed fact.
 - **Code change made because of this:** if a guide says no approval is required but none of the pages actually read are about review, the guide now adds an uncertainty note saying so.
 - The same run showed the earlier fix working: raw field names in "uncertain" are now readable sentences.
-
+- **Not repeatable:** generating Typeform a second time, on the deployed Replit app, gave "moderate" instead of "easy" and "no official figure" instead of "under 30 minutes". The model writes a slightly different guide each run, so live guides are a starting point to check, not a fixed answer.
 ## 2. Corrected
 
 1. **Google user caps** were merged by the agent. Correct: 100 *test users* in Testing, and a separate lifetime cap of 100 *new users* while the app is unverified, which can't be reset.
