@@ -6,6 +6,7 @@
 
 import http from "node:http";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateGuide } from "./agent.js";
@@ -13,9 +14,10 @@ import { generateGuide } from "./agent.js";
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 const LIBRARY = path.join(ROOT, "guides");                                   // researched guides, committed to git
-const GENERATED = process.env.GENERATED_DIR || path.join(ROOT, "generated"); // guides made live, cached here (git-ignored)
+let GENERATED = process.env.GENERATED_DIR || path.join(ROOT, "generated"); // guides made live, cached here (git-ignored)
 const PER_HOUR = Number(process.env.GEN_PER_HOUR || 20);                     // max live generations per hour, whole server
-fs.mkdirSync(GENERATED, { recursive: true });
+try { fs.mkdirSync(GENERATED, { recursive: true }); }
+catch { GENERATED = path.join(os.tmpdir(), "generated"); fs.mkdirSync(GENERATED, { recursive: true }); }
 
 // "https://www.HubSpot.com/pricing" -> "hubspot". Used as the guide's file name and URL.
 const slugify = (s) =>
