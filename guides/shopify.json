@@ -1,0 +1,250 @@
+{
+  "app": "Shopify",
+  "website": "https://www.shopify.com",
+  "category": "E-commerce",
+  "summary": "Shopify uses the OAuth authorization code grant against each merchant's own shop domain ({shop}.myshopify.com). You create an app in the Shopify Dev Dashboard, and choose a distribution method: custom distribution (no approval, single store / same Plus organization / dev stores) or public distribution (App Store, requires Shopify review). Composio does not offer managed OAuth for Shopify, so you must supply your own app credentials.",
+  "difficulty": "moderate",
+  "time_to_first_connection": "Likely under 1 hour on a dev store (inferred: create app, release a version, install on a dev store); no official figure",
+  "time_to_production": "Custom distribution: no approval step stated. Public App Store: no official figure for review time",
+  "effort": "Create a Dev Dashboard app, set App URL, redirect URL and scopes, release a version, and build an OAuth flow that collects the shop domain per merchant, validates state/HMAC/shop, and exchanges the code for a token. For multi-merchant public use: complete App Store listing, compliance webhooks, automated checks, billing via Shopify, and possibly protected customer data requests.",
+  "approval": {
+    "required": true,
+    "kind": "App Store review (public distribution only); protected customer data access request for Level 1/2 data in public apps. Not required for custom distribution.",
+    "who_reviews": "Shopify App Store Review team; Shopify reviews protected customer data requests and may select apps for a data protection review",
+    "stated_wait": null,
+    "source_url": "https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review"
+  },
+  "steps": [
+    {
+      "title": "Get access to the Dev Dashboard",
+      "detail": "You need a user with app development permissions in the Dev Dashboard. A dev store (owned by you, for testing) can be created there. Exact account/Partner signup requirements were not stated on the pages read.",
+      "owner": "developer_must_do",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard"
+    },
+    {
+      "title": "Create the app",
+      "detail": "In the Dev Dashboard open Apps > Create app > Start from Dev Dashboard, name it, and create.",
+      "owner": "developer_must_do",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "title": "Choose distribution method",
+      "detail": "Custom distribution (no approval; single store, same Plus organization, or dev stores; cannot use Shopify billing) or public distribution (App Store, multi-store, requires approval). The choice cannot be changed afterward, so select it on the production app.",
+      "owner": "developer_must_do",
+      "source_url": "https://shopify.dev/docs/apps/launch/distribution"
+    },
+    {
+      "title": "Create and release a version with scopes",
+      "detail": "On the Versions page set App URL, webhooks API version and scopes, then Release. An app needs at least one released version before it can be installed. Add the OAuth redirect URI(s) in the app configuration (Dev Dashboard or TOML); the redirect_uri in the authorize request must exactly match.",
+      "owner": "developer_must_do",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "title": "Copy client ID and secret",
+      "detail": "In App settings copy the Client ID and Client secret and store them as your OAuth app credentials (for Composio, as custom auth config).",
+      "owner": "developer_must_do",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "title": "Run the authorization code grant",
+      "detail": "Redirect the merchant to https://{shop}/admin/oauth/authorize with client_id, scope, redirect_uri, and a random state. On callback verify state, verify the hmac (HMAC-SHA256 with client secret, constant-time compare), and validate the shop domain with an anchored regex. Then POST to https://{shop}/admin/oauth/access_token with client_id, client_secret, code and expiring=1.",
+      "owner": "agent_can_do",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "title": "Handle expiring tokens",
+      "detail": "New public apps must use expiring offline access tokens. The documented example shows a 3600s access token and a 90-day refresh token; refresh with grant_type=refresh_token. Check the returned scope contains everything you need.",
+      "owner": "agent_can_do",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "title": "Request protected customer data access if needed",
+      "detail": "Public apps reading customer data must request access in the Partner Dashboard (API access requests) and complete data protection details. Level 2 (name, address, phone, email) also involves data protection reviews. Not needed to test on dev stores.",
+      "owner": "needs_provider_review",
+      "source_url": "https://shopify.dev/docs/apps/launch/protected-customer-data"
+    },
+    {
+      "title": "Submit for App Store review (public path only)",
+      "detail": "Complete listing, 1200x1200 icon, compliance webhooks, emergency developer contact, automated checks, test credentials and a demo screencast, then submit.",
+      "owner": "needs_provider_review",
+      "source_url": "https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "Per-merchant shop domain ({shop}.myshopify.com) is part of the authorize and token URLs, so your connect UI must capture or derive the shop.",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "text": "redirect_uri must exactly match a redirect URI configured in the Dev Dashboard or app TOML.",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "text": "Request only the access scopes you need; a write_* scope includes the matching read_*. Some scopes touch protected customer data and add requirements.",
+      "source_url": "https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements"
+    },
+    {
+      "text": "Public apps must bill through Shopify's Billing API/App Pricing, subscribe to compliance webhooks, and meet App Store policy, functionality, security and listing requirements.",
+      "source_url": "https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements"
+    },
+    {
+      "text": "App Store apps must start OAuth immediately after install and must not ask merchants to type a myshopify.com URL during install or configuration.",
+      "source_url": "https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements"
+    }
+  ],
+  "gotchas": [
+    {
+      "text": "Distribution method cannot be changed after selection; use a separate production app if you have a dev app.",
+      "source_url": "https://shopify.dev/docs/apps/launch/distribution"
+    },
+    {
+      "text": "Custom distribution cannot charge through Shopify billing and is limited to a single store, stores in one Plus organization, or dev stores; it is not a way to serve arbitrary merchants.",
+      "source_url": "https://shopify.dev/docs/apps/launch/distribution"
+    },
+    {
+      "text": "Scope changes in a new app version are not applied automatically; merchants must approve them in the Shopify admin.",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "text": "Merchants can alter requested scopes during authorization, so verify the returned scope before storing the token.",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "text": "The client credentials grant (24-hour tokens, no merchant consent flow) only works for stores in your own organization, so it does not help for end-user connections.",
+      "source_url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "text": "Composio notes order update requests can return 403 when the read_all_orders scope is missing.",
+      "source_url": "https://docs.composio.dev/toolkits/shopify"
+    },
+    {
+      "text": "You cannot apply for protected customer data access while an app is under review; request it before submitting.",
+      "source_url": "https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "End users are arbitrary merchants' stores (not your own org) and you need a public app",
+      "what_to_do": "Plan for App Store review (public distribution); no official review duration is published, so start early and prepare listing, billing and compliance webhooks."
+    },
+    {
+      "blocker": "Need customer name/email/address/phone data from public-app merchants",
+      "what_to_do": "Request Level 2 protected customer data access and complete data protection details; expect possible data protection review."
+    },
+    {
+      "blocker": "Composio has no managed Shopify OAuth app",
+      "what_to_do": "Create your own Shopify app and configure custom OAuth credentials in Composio."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Implement the authorize redirect, callback validation (state, HMAC, shop regex) and token exchange/refresh once credentials exist",
+      "Store tokens and handle scope verification"
+    ],
+    "human_must": [
+      "Create the Shopify developer access and Dev Dashboard app",
+      "Choose distribution method",
+      "Configure redirect URL, scopes and release a version",
+      "Submit listing/protected customer data requests and respond to Shopify reviewers",
+      "Each merchant must approve the install on their store"
+    ]
+  },
+  "claims": [
+    {
+      "claim": "Authorization code grant uses https://{shop}/admin/oauth/authorize and POST https://{shop}/admin/oauth/access_token.",
+      "evidence": "doc-stated",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "claim": "New public apps must use expiring offline access tokens.",
+      "evidence": "doc-stated",
+      "source_url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "claim": "Custom distribution requires no approval; public distribution requires Shopify approval.",
+      "evidence": "doc-stated",
+      "source_url": "https://shopify.dev/docs/apps/launch/distribution"
+    },
+    {
+      "claim": "Shopify docs state no App Store review duration.",
+      "evidence": "doc-stated",
+      "source_url": "https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements"
+    },
+    {
+      "claim": "Protected customer data access need not be submitted for review for apps installed only on dev stores.",
+      "evidence": "doc-stated",
+      "source_url": "https://shopify.dev/docs/apps/launch/protected-customer-data"
+    },
+    {
+      "claim": "Composio-managed OAuth is unavailable for Shopify; custom OAuth config required.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.composio.dev/toolkits/shopify"
+    },
+    {
+      "claim": "A dev store connection can be set up in under an hour.",
+      "evidence": "inferred",
+      "source_url": null
+    },
+    {
+      "claim": "A standard Shopify Partner account is required to create dev stores or the Dev Dashboard app.",
+      "evidence": "unverified",
+      "source_url": null
+    }
+  ],
+  "composio": {
+    "slug": "shopify",
+    "managed_oauth_available": false,
+    "note": "The Composio Shopify toolkit page lists OAuth2 and S2S_OAUTH2 and states Composio-managed OAuth is unavailable, so you must bring your own Shopify app (client ID/secret) from the start. You therefore must register your own app before any connection, and own branding, scopes and rate-limit quota by default. The page's FAQ answers on custom OAuth credentials and the 'App not found' error were not readable, and required fields (e.g. shop subdomain) and redirect URL were not specified.",
+    "source_url": "https://docs.composio.dev/toolkits/shopify"
+  },
+  "not_tested": "Only documentation was read. No Shopify app, Partner/Dev Dashboard account, dev store or OAuth flow was created or tested, and no Composio connection was attempted.",
+  "uncertain": [
+    "No official App Store review duration; none is stated on the submission or requirements pages (no official figure).",
+    "No official review timeline for protected customer data requests.",
+    "Partner account vs Dev Dashboard account requirements and cost were not stated on pages read; the protected customer data page still references Partner Dashboard.",
+    "Where OAuth redirect URLs are configured in the Dev Dashboard UI was not detailed on the page read.",
+    "How custom distribution installs are shared with a merchant (install link) was not covered by pages read.",
+    "App Store requirements page was truncated (last ~3.7k characters unread).",
+    "Client credentials grant page could not be fetched; its details come from the Dev Dashboard page.",
+    "Composio FAQ answers and required connection fields (shop subdomain) not visible; verify in Composio dashboard."
+  ],
+  "sources": [
+    {
+      "title": "Authorization code grant",
+      "url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant"
+    },
+    {
+      "title": "App distribution",
+      "url": "https://shopify.dev/docs/apps/launch/distribution"
+    },
+    {
+      "title": "App Store requirements",
+      "url": "https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements"
+    },
+    {
+      "title": "Protected customer data",
+      "url": "https://shopify.dev/docs/apps/launch/protected-customer-data"
+    },
+    {
+      "title": "Submit your app for review",
+      "url": "https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review"
+    },
+    {
+      "title": "Dev Dashboard",
+      "url": "https://shopify.dev/docs/apps/build/dev-dashboard"
+    },
+    {
+      "title": "Create apps using Dev Dashboard",
+      "url": "https://shopify.dev/docs/apps/build/dev-dashboard/create-apps-using-dev-dashboard"
+    },
+    {
+      "title": "Composio Shopify toolkit",
+      "url": "https://docs.composio.dev/toolkits/shopify"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs using the same prompt and schema as live generation; spot-checked, see VERIFICATION.md"
+  }
+}

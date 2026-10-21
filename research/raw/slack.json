@@ -1,0 +1,45 @@
+{
+ "app": "Slack",
+ "website": "https://slack.com",
+ "docs_urls": ["https://docs.slack.dev/authentication/installing-with-oauth","https://docs.slack.dev/app-management/distribution","https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide","https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace","https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps","https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace"],
+ "setup_steps": [
+  {"step":"Create a Slack app","detail":"Create at api.slack.com/apps; client ID and client secret appear on the App Management page. (doc-stated)","who":"human_required","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"step":"Choose minimal bot scopes (scope) and user scopes (user_scope)","detail":"Bot and user scope sets must be requested in separate OAuth flows per doc; scopes accumulate across installs, removal requires revoking the token. (doc-stated)","who":"agent_can_help","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"step":"Configure HTTPS Redirect URL under OAuth & Permissions","detail":"Must be HTTPS, no '#' anchor; redirect_uri must match or be subpath of a configured URL; same value in authorize and access steps if multiple configured, else bad_redirect_uri. (doc-stated)","who":"agent_can_help","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"step":"Implement authorize redirect + code exchange at oauth.v2.access","detail":"Redirect user to Slack authorize endpoint, receive temporary code at redirect_uri, exchange with client secret for access token. (doc-stated)","who":"agent_can_help","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"step":"Install into own workspace","detail":"Installing needs a user with permission; if the workspace requires approved apps, an Owner/app manager must approve. (doc-stated)","who":"human_required","source_url":"https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace"},
+  {"step":"Activate Public Distribution (for other workspaces)","detail":"App dashboard > Manage Distribution > complete checklist > Activate Public Distribution. Requires SSL on redirect/request URLs and OAuth 2.0 flow. Yields Add to Slack button and install URL. Not reviewed. (doc-stated)","who":"human_required","source_url":"https://docs.slack.dev/app-management/distribution"},
+  {"step":"Optional: submit to Slack Marketplace","detail":"Submit from app config; automated tests, test accounts with dummy data, demo video; preliminary then functional review. Needs >=10 active workspaces (used within 28 days). (doc-stated)","who":"human_required","source_url":"https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"}
+ ],
+ "approval": {
+  "required": true,
+  "type": "Two layers. (1) Per-workspace admin approval: only if the target workspace has enabled 'Require approved apps'; default is members can install without Owner approval. (2) Slack Marketplace review: optional, but needed to avoid reduced rate limits for new commercially distributed apps. Public distribution itself has no Slack review.",
+  "typical_wait": "Workspace admin approval: no official number. Marketplace: preliminary feedback up to 10 business days; functional review up to 10 weeks new, up to 6 weeks resubmission; cannot be expedited (doc-stated). Public distribution activation: no review, no wait stated.",
+  "source_url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+ },
+ "effort_estimate": "Internal/own-workspace app: inferred hours to ~1 day for OAuth code. Public distribution (unlisted): inferred ~days. Marketplace: inferred multi-month (10-business-day preliminary + up to 10 weeks functional + 10-workspace install prerequisite + landing/support/privacy pages, video). No official effort figure exists.",
+ "gotchas": [
+  {"text":"Since 2025-05-29, commercially distributed apps not in the Marketplace, created on/after that date or newly installed, get Tier 1 on conversations.history and conversations.replies: 1 request/minute, max/default limit param 15. Marketplace apps, existing installs of older unlisted apps, and internal customer-built apps (50+/min, 1000 objects) are unaffected. (doc-stated)","source_url":"https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"},
+  {"text":"Marketplace requires >=10 active workspaces installed, yet unlisted public distribution is rate-limited; a chicken-and-egg for read-history apps. (inferred from the two doc-stated facts)","source_url":"https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"},
+  {"text":"Bot and user scopes need separate OAuth flows; Sign in with Slack scopes cannot be combined. (doc-stated)","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"text":"Scopes accumulate; removing one requires revoking the whole token. (doc-stated)","source_url":"https://docs.slack.dev/authentication/installing-with-oauth"},
+  {"text":"Once published to Marketplace, distribution cannot be toggled off; must discontinue listing. Deactivating public distribution removes the app from other workspaces. (doc-stated)","source_url":"https://docs.slack.dev/app-management/distribution"},
+  {"text":"Marketplace submission: Slack workspace credentials not accepted as test accounts; apps using only Sign in with Slack or only an MCP server are excluded; use signing secrets not verification tokens; use OAuth state param; TLS 1.2+. (doc-stated)","source_url":"https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace"},
+  {"text":"Published Marketplace app is locked; new scopes/features require resubmission and staging app; installing with unreviewed scopes causes customer errors. (doc-stated)","source_url":"https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"}
+ ],
+ "scopes_notes": "Request least privilege; Marketplace requires per-scope justification, no scopes for future features, avoid legacy/restricted scopes, broad history access needs a clear use case, admin scopes generally limited to partner program members (all doc-stated). Specific scope names (e.g. channels:history, chat:write) were not verified in this research.",
+ "blockers_and_workarounds": [
+  "Blocker: workspace requires approved apps -> an Owner or appointed app manager must approve; admins weigh requested permissions, so minimize scopes (doc-stated).",
+  "Blocker: Tier 1 history limits for unlisted new apps -> get Marketplace approval, or build as an internal customer-built app per customer workspace (unaffected, doc-stated), or use Events API to receive messages instead of polling (inferred, not stated in sources).",
+  "Blocker: Marketplace needs 10 active workspaces -> bootstrap via unlisted public distribution pilots (doc-stated as suited to pilots).",
+  "Blocker: creating app / activating distribution / admin approvals are human account actions; an agent cannot do them without the user's logged-in session (inferred)."
+ ],
+ "unverified": [
+  "Typical wait for workspace admin approval: no official number found.",
+  "docs.slack.dev/distributing page failed to fetch; distribution details come from /app-management/distribution.",
+  "Rate-limit page's tier table did not render; Tier values other than the changelog's were not seen.",
+  "Whether Marketplace-approved status affects other methods beyond conversations.history/replies: not found.",
+  "Exact current Manage Distribution checklist items: not retrieved.",
+  "Effort estimates are my own inference."
+ ]
+}

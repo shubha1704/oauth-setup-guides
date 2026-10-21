@@ -1,0 +1,235 @@
+{
+  "app": "X (Twitter)",
+  "website": "https://developer.x.com",
+  "category": "Social media / publishing",
+  "summary": "X's API v2 lets a developer register an app in the Developer Console (console.x.com) and obtain OAuth 2.0 Client ID/Secret (Authorization Code with PKCE) or OAuth 1.0a keys. Access is pay-per-usage with prepaid credits; the docs read do not describe a manual app-review step. Composio's page states Composio-managed OAuth is not available for Twitter, so you must register your own app.",
+  "difficulty": "moderate",
+  "time_to_first_connection": "no official figure (docs describe 3 self-serve steps: create developer account, create app, save credentials)",
+  "time_to_production": "no official figure; the docs read describe no app review or approval wait",
+  "effort": "Sign in at console.x.com with an X account, accept the Developer Agreement and Policy, create an app, set app type (Web App/Automated App = confidential; Native/SPA = public), add exact-match callback URLs (max 10), save credentials (shown once), fund the account with credits, and implement the PKCE flow with the scopes you need.",
+  "approval": {
+    "required": false,
+    "kind": "No app review step described in the docs read; developer agreement acceptance and profile completion at signup. Suspension is possible and appealable via the Platform Help Form.",
+    "who_reviews": "N/A per docs read (X platform team handles suspensions)",
+    "stated_wait": null,
+    "source_url": "https://docs.x.com/fundamentals/developer-apps"
+  },
+  "steps": [
+    {
+      "title": "Create a developer account",
+      "detail": "Go to console.x.com, sign in with an X account, accept the Developer Agreement and Policy, and complete the profile with basic info on how you will use the API.",
+      "owner": "developer_must_do",
+      "source_url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "title": "Add credits / payment",
+      "detail": "X API v2 is pay-per-usage with purchased credits deducted per request; optionally set a spending limit and auto-recharge (needs a saved payment method).",
+      "owner": "developer_must_do",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "title": "Create an app",
+      "detail": "Click New App in the console; enter name, description and use case. Keys and tokens are generated.",
+      "owner": "developer_must_do",
+      "source_url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "title": "Configure app type, permissions and callback URLs",
+      "detail": "Choose Web App / Automated App (confidential, gets client secret) or Native / SPA (public, PKCE only). Add callback URLs to the allowlist (max 10, exact match including trailing slashes; https in production, http://127.0.0.1 not localhost for local dev). OAuth 1.0a permission levels are Read, Read+Write, Read+Write+DMs.",
+      "owner": "developer_must_do",
+      "source_url": "https://docs.x.com/fundamentals/developer-apps"
+    },
+    {
+      "title": "Save credentials immediately",
+      "detail": "Credentials are displayed only once; regenerating invalidates the old ones. For OAuth 2.0 you need Client ID and Client Secret.",
+      "owner": "developer_must_do",
+      "source_url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "title": "Implement Authorization Code with PKCE",
+      "detail": "Send users to https://x.com/i/oauth2/authorize with response_type=code, client_id, redirect_uri, scope, state, code_challenge, code_challenge_method (S256 or plain). Exchange the code at https://api.x.com/2/oauth2/token; codes expire 30 seconds after being received. Include offline.access to get a refresh token (access tokens last two hours by default).",
+      "owner": "agent_can_do",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "An X account to sign into the Developer Console and acceptance of the Developer Agreement and Policy.",
+      "source_url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "text": "Callback URL(s) registered in the app and matched exactly by redirect_uri.",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "text": "Scopes documented: tweet.read, tweet.write, tweet.moderate.write, users.read, users.email, follows.read/write, offline.access, space.read, mute.read/write, like.read/write, list.read/write, block.read/write, bookmark.read/write, dm.read/write, media.write, broadcast.read/write.",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "text": "Funded credit balance for API usage (pay-per-usage).",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    }
+  ],
+  "gotchas": [
+    {
+      "text": "Pricing is per-usage and changes: the pricing page (seen 2026-10-20) lists e.g. Post read $0.005, User read $0.010, Post create $0.015, Post create with URL $0.200, Owned Reads $0.001 per resource. The page says prices are subject to change; check the Developer Console.",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "text": "Pay-per-usage plans are capped at 3 million Post reads per monthly billing cycle; higher volume requires an Enterprise plan (no Enterprise pricing published on that page).",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "text": "A resource requested more than once in the same 24-hour UTC window is charged once (described as a soft guarantee). A spend cap blocks requests until the next cycle once reached.",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "text": "Authorization codes expire 30 seconds after receipt; exchange immediately. Without offline.access no refresh token is issued and access tokens last about two hours.",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "text": "The docs' example authorize URL uses account.follows.read/write, which are not in the scope table (follows.read/write are); verify scope names.",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "text": "Rate limits are per app (Bearer token) or per user (user tokens), mostly 15-minute or 24-hour windows; e.g. POST /2/tweets is 100/15min per user and 10,000/24hrs per app. Exceeding returns HTTP 429 (code 88). Enterprise has custom limits.",
+      "source_url": "https://docs.x.com/x-api/fundamentals/rate-limits"
+    },
+    {
+      "text": "Changing OAuth 1.0a permission level requires users to re-authorize to get tokens with the new scope.",
+      "source_url": "https://docs.x.com/fundamentals/developer-apps"
+    },
+    {
+      "text": "Composio FAQ headings mention errors such as client-not-enrolled / App not linked to project (developer app/project setup issues) and UsageCapExceeded; answers were not visible in the fetched text.",
+      "source_url": "https://docs.composio.dev/toolkits/twitter"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Composio-managed OAuth is not available for Twitter",
+      "what_to_do": "Register your own X app and supply your Client ID/Secret via a custom auth config in Composio."
+    },
+    {
+      "blocker": "No credits / spend cap reached",
+      "what_to_do": "Add credits or raise the spending limit in the Developer Console; requests are blocked at the cap until the next cycle."
+    },
+    {
+      "blocker": "Volume above 3M Post reads per billing cycle",
+      "what_to_do": "Contact X via the Enterprise interest form."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Build the PKCE authorize URL and handle code exchange and token refresh",
+      "Request the needed scopes and handle 429 responses with backoff using x-rate-limit-reset"
+    ],
+    "human_must": [
+      "Sign into console.x.com and accept the Developer Agreement and Policy",
+      "Create the app, set app type and callback URLs",
+      "Fund the account and set spend limits",
+      "Save Client ID/Secret (shown once)"
+    ]
+  },
+  "claims": [
+    {
+      "claim": "Developer signup is at console.x.com: sign in with X account, accept Developer Agreement, complete profile.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "claim": "X API v2 uses pay-per-usage pricing with purchased credits and no subscriptions; no free tier described on the pricing page.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "claim": "Per-resource prices listed on the pricing page as seen 2026-10-20 (see gotchas).",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "claim": "OAuth 2.0 PKCE authorize URL is https://x.com/i/oauth2/authorize and token URL is https://api.x.com/2/oauth2/token.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "claim": "Callback URLs: max 10, exact match, use 127.0.0.1 not localhost locally.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.x.com/fundamentals/developer-apps"
+    },
+    {
+      "claim": "Composio-managed OAuth is not available for Twitter.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.composio.dev/toolkits/twitter"
+    },
+    {
+      "claim": "There is no manual app review gating production use.",
+      "evidence": "inferred",
+      "source_url": "https://docs.x.com/fundamentals/developer-apps"
+    },
+    {
+      "claim": "Some endpoints or scopes (e.g. DMs, media) may need specific app permissions or may be restricted by plan.",
+      "evidence": "unverified",
+      "source_url": null
+    },
+    {
+      "claim": "Any signup or approval wait time.",
+      "evidence": "unverified",
+      "source_url": null
+    }
+  ],
+  "composio": {
+    "slug": "twitter",
+    "managed_oauth_available": false,
+    "note": "Composio's toolkit page states 'Composio-managed OAuth not available' for Twitter and lists OAuth2 as the auth scheme; FAQ headings suggest managed credentials were removed. You must register your own X app and bring your own Client ID/Secret, which means you handle your own branding, scopes, credits and rate-limit/usage quota. Details of the custom auth config were not visible in the fetched text.",
+    "source_url": "https://docs.composio.dev/toolkits/twitter"
+  },
+  "not_tested": "Documentation only. I did not log into the X Developer Console, create an app, fund an account or run any OAuth flow.",
+  "uncertain": [
+    "No official figure for signup, approval or time to first connection; docs read describe no app review but this is based on absence in the pages fetched.",
+    "Pricing was read from docs.x.com pricing page on 2026-10-20 and is subject to change; the developer.x.com pricing page and Developer Console were not checked.",
+    "Enterprise pricing and access terms are not published on the pages read.",
+    "Whether certain scopes/endpoints (DMs, media, email) require extra approval or higher plans was not confirmed.",
+    "Composio FAQ answers (managed credentials removal, UsageCapExceeded, 403s) were not visible, only headings.",
+    "Scope naming inconsistency in X docs (account.follows.* vs follows.*).",
+    "Difficulty set to moderate (not easy) by the reviewer: no manual review is documented, but the account must be funded with prepaid credits before API calls work."
+  ],
+  "sources": [
+    {
+      "title": "X API getting access",
+      "url": "https://docs.x.com/x-api/getting-started/getting-access"
+    },
+    {
+      "title": "X API pricing",
+      "url": "https://docs.x.com/x-api/getting-started/pricing"
+    },
+    {
+      "title": "About the X API",
+      "url": "https://docs.x.com/x-api/getting-started/about-x-api"
+    },
+    {
+      "title": "OAuth 2.0 Authorization Code with PKCE",
+      "url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code"
+    },
+    {
+      "title": "Authentication overview",
+      "url": "https://docs.x.com/fundamentals/authentication/"
+    },
+    {
+      "title": "Developer apps",
+      "url": "https://docs.x.com/fundamentals/developer-apps"
+    },
+    {
+      "title": "Rate limits",
+      "url": "https://docs.x.com/x-api/fundamentals/rate-limits"
+    },
+    {
+      "title": "Composio Twitter toolkit",
+      "url": "https://docs.composio.dev/toolkits/twitter"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs using the same prompt and schema as live generation; spot-checked, see VERIFICATION.md"
+  }
+}

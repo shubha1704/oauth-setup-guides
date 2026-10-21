@@ -1,0 +1,192 @@
+{
+  "app": "Slack",
+  "website": "https://slack.com",
+  "category": "Communication",
+  "summary": "Creating the app and distributing it publicly is self-serve, but new commercially distributed apps that are not in the Slack Marketplace get a 1 request/minute limit on message-history methods. Marketplace review is optional on paper and nearly required if you read history.",
+  "difficulty": "moderate",
+  "time_to_first_connection": "Hours for your own workspace (inferred)",
+  "time_to_production": "Unlisted public distribution: self-serve, no review. Marketplace: up to 10 business days preliminary feedback plus up to 10 weeks functional review (new apps), not expeditable.",
+  "effort": "Own workspace: small. Public distribution: checklist and HTTPS. Marketplace: landing, support and privacy pages, test accounts with dummy data, demo video, 10 active workspaces.",
+  "approval": {
+    "required": true,
+    "kind": "Two layers: (1) workspace admin approval only where 'Require approved apps' is on; (2) optional Slack Marketplace review. Public distribution itself is not reviewed.",
+    "who_reviews": "Workspace Owners / app managers; Slack Marketplace team",
+    "stated_wait": "Marketplace: up to 10 business days preliminary, up to 10 weeks functional (new), up to 6 weeks (resubmission). Admin approval: no official figure.",
+    "source_url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+  },
+  "steps": [
+    {
+      "title": "Create a Slack app",
+      "detail": "Create at api.slack.com/apps; client ID and client secret appear on the App Management page.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "title": "Choose minimal bot scopes (scope) and user scopes (user_scope)",
+      "detail": "Bot and user scope sets must be requested in separate OAuth flows per doc; scopes accumulate across installs, removal requires revoking the token.",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "title": "Configure HTTPS Redirect URL under OAuth & Permissions",
+      "detail": "Must be HTTPS, no '#' anchor; redirect_uri must match or be subpath of a configured URL; same value in authorize and access steps if multiple configured, else bad_redirect_uri.",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "title": "Implement authorize redirect + code exchange at oauth.v2.access",
+      "detail": "Redirect user to Slack authorize endpoint, receive temporary code at redirect_uri, exchange with client secret for access token.",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "title": "Install into own workspace",
+      "detail": "Installing needs a user with permission; if the workspace requires approved apps, an Owner/app manager must approve.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace"
+    },
+    {
+      "title": "Activate Public Distribution (for other workspaces)",
+      "detail": "App dashboard > Manage Distribution > complete checklist > Activate Public Distribution. Requires SSL on redirect/request URLs and OAuth 2.0 flow. Yields Add to Slack button and install URL. Not reviewed.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/app-management/distribution"
+    },
+    {
+      "title": "Optional: submit to Slack Marketplace",
+      "detail": "Submit from app config; automated tests, test accounts with dummy data, demo video; preliminary then functional review. Needs >=10 active workspaces (used within 28 days).",
+      "owner": "needs_provider_review",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "HTTPS redirect URL configured under OAuth & Permissions (no '#' anchor).",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "text": "Bot scopes and user scopes are requested in separate OAuth flows.",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "text": "Marketplace: at least 10 active workspaces, per-scope justification, signing secrets (not verification tokens), TLS 1.2+, OAuth state parameter.",
+      "source_url": "https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace"
+    }
+  ],
+  "composio": {
+    "slug": "slack",
+    "managed_oauth_available": true,
+    "note": "Composio can supply the OAuth app so you can start without registering one; users see 'Composio' on the consent screen, scopes are Composio's defaults, and rate-limit quota is shared. Register your own app (this guide) for production branding, custom scopes, a dedicated quota, faster polling, or private instances.",
+    "source_url": "https://docs.composio.dev/toolkits/slack"
+  },
+  "gotchas": [
+    {
+      "text": "Since 2025-05-29, commercially distributed apps not in the Marketplace, created on/after that date or newly installed, get Tier 1 on conversations.history and conversations.replies: 1 request/minute, max/default limit param 15. Marketplace apps, existing installs of older unlisted apps, and internal customer-built apps (50+/min, 1000 objects) are unaffected.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"
+    },
+    {
+      "text": "Marketplace requires >=10 active workspaces installed, yet unlisted public distribution is rate-limited; a chicken-and-egg for read-history apps.",
+      "evidence": "inferred",
+      "source_url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+    },
+    {
+      "text": "Bot and user scopes need separate OAuth flows; Sign in with Slack scopes cannot be combined.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "text": "Scopes accumulate; removing one requires revoking the whole token.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "text": "Once published to Marketplace, distribution cannot be toggled off; must discontinue listing. Deactivating public distribution removes the app from other workspaces.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/app-management/distribution"
+    },
+    {
+      "text": "Marketplace submission: Slack workspace credentials not accepted as test accounts; apps using only Sign in with Slack or only an MCP server are excluded; use signing secrets not verification tokens; use OAuth state param; TLS 1.2+.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace"
+    },
+    {
+      "text": "Published Marketplace app is locked; new scopes/features require resubmission and staging app; installing with unreviewed scopes causes customer errors.",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "New unlisted commercially distributed apps are throttled to 1 request/minute (limit 15) on conversations.history and conversations.replies.",
+      "what_to_do": "Get Marketplace approval, build as an internal customer-built app per workspace (unaffected), or try the Events API instead of polling (inferred, not stated in docs)."
+    },
+    {
+      "blocker": "Marketplace needs 10 active workspaces but unlisted distribution is throttled (inferred chicken-and-egg).",
+      "what_to_do": "Bootstrap through pilot installs via unlisted public distribution; Slack's docs describe it as suited to pilots."
+    },
+    {
+      "blocker": "Customer workspace requires approved apps.",
+      "what_to_do": "An Owner or appointed app manager approves; ask for the minimum scopes since admins weigh them."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Choose least-privilege scopes",
+      "Write the authorize/oauth.v2.access flow",
+      "Prepare the Marketplace checklist, privacy and support page drafts"
+    ],
+    "human_must": [
+      "Create the app and Activate Public Distribution (logged-in session)",
+      "Provide test accounts, demo video and submit for Marketplace",
+      "Workspace admin approval in customer workspaces"
+    ]
+  },
+  "claims": [],
+  "not_tested": "Based on reading official documentation only. No app was registered or submitted for approval, so UI labels, current form fields and real-world wait times are not verified by hands-on testing.",
+  "uncertain": [
+    "Typical wait for workspace admin approval: no official number found.",
+    "docs.slack.dev/distributing page failed to fetch; distribution details come from /app-management/distribution.",
+    "Rate-limit page's tier table did not render; Tier values other than the changelog's were not seen.",
+    "Whether Marketplace-approved status affects other methods beyond conversations.history/replies: not found.",
+    "Exact current Manage Distribution checklist items: not retrieved.",
+    "Effort estimates are my own inference."
+  ],
+  "sources": [
+    {
+      "title": "docs.slack.dev/authentication/installing-with-oauth",
+      "url": "https://docs.slack.dev/authentication/installing-with-oauth"
+    },
+    {
+      "title": "docs.slack.dev/app-management/distribution",
+      "url": "https://docs.slack.dev/app-management/distribution"
+    },
+    {
+      "title": "docs.slack.dev/slack-marketplace/slack-marketplace-review-guide",
+      "url": "https://docs.slack.dev/slack-marketplace/slack-marketplace-review-guide"
+    },
+    {
+      "title": "docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace",
+      "url": "https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace"
+    },
+    {
+      "title": "docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps",
+      "url": "https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps"
+    },
+    {
+      "title": "slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace",
+      "url": "https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs, then human-reviewed overlays"
+  }
+}

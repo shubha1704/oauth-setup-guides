@@ -1,0 +1,64 @@
+{
+ "app": "Google OAuth app using Gmail API scopes",
+ "website": "https://console.cloud.google.com/auth (Google Auth platform)",
+ "docs_urls": [
+  "https://support.google.com/cloud/answer/13463073",
+  "https://support.google.com/cloud/answer/13461325",
+  "https://support.google.com/cloud/answer/15549945",
+  "https://support.google.com/cloud/answer/13465431",
+  "https://support.google.com/cloud/answer/13463816",
+  "https://developers.google.com/workspace/gmail/api/auth/scopes",
+  "https://developers.google.com/workspace/guides/configure-oauth-consent",
+  "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification",
+  "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification",
+  "https://developers.google.com/identity/protocols/oauth2#expiration",
+  "https://appdefensealliance.dev/casa/casa-tiering",
+  "https://appdefensealliance.dev/casa/casa-assessors"
+ ],
+ "setup_steps": [
+  {"step":"Create/select Cloud project and enable Gmail API","detail":"Create project, enable Gmail API in API Library. [doc-stated]","who":"agent_can_help","source_url":"https://support.google.com/cloud/answer/13461325"},
+  {"step":"Configure consent screen (Google Auth platform: Branding, Audience, Contact info)","detail":"App name, support email, user type Internal (Workspace org only) or External, contact email, accept API Services User Data Policy. Consent screen cannot be deleted once configured. Console clicks are likely a human browser session; [doc-stated] for steps, [inferred] for who.","who":"human_required","source_url":"https://developers.google.com/workspace/guides/configure-oauth-consent"},
+  {"step":"Add Gmail scopes under Data Access and test users under Audience","detail":"Choose narrowest scopes. Test users only for External apps in Testing. [doc-stated]","who":"agent_can_help","source_url":"https://developers.google.com/workspace/guides/configure-oauth-consent"},
+  {"step":"Create OAuth client credentials","detail":"Pick client type (web, desktop, etc.). [doc-stated]","who":"agent_can_help","source_url":"https://support.google.com/cloud/answer/13461325"},
+  {"step":"Run in Testing status","detail":"Up to 100 test users; authorizations/refresh tokens expire after 7 days; users see unverified-app warning. [doc-stated]","who":"developer","source_url":"https://support.google.com/cloud/answer/15549945"},
+  {"step":"Own a domain: host public home page + privacy policy on same domain; verify domain in Search Console","detail":"Home page must be public, not Play Store/Facebook; privacy policy linked on consent screen and on same domain; verify with Owner/Editor account. [doc-stated]","who":"human_required","source_url":"https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"},
+  {"step":"Verify Branding, then publish branding","detail":"Automated check usually minutes; branding must be published before data access verification; compliant result expires after 7 days if unpublished. [doc-stated]","who":"developer","source_url":"https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"},
+  {"step":"Publish app to In production, Prepare for Verification, justify scopes, upload demo video, Submit","detail":"Apps in Testing are not eligible for verification. Demo video: unlisted YouTube, English, shows full OAuth flow, app name on consent screen, client ID in address bar, and each sensitive/restricted scope in use. Per-scope justification incl. why narrower scope won't work. [doc-stated]","who":"human_required","source_url":"https://support.google.com/cloud/answer/13461325"},
+  {"step":"Respond to Trust & Safety emails","detail":"Review pauses until you respond; all comms by email to project owners/editors. [doc-stated]","who":"human_required","source_url":"https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"},
+  {"step":"If restricted scopes and server-side storage/transit: CASA security assessment","detail":"Final step of restricted review; Google contacts you to start; done by an ADA-authorized lab, yields Letter of Validation (LOV). Level (AL1/AL2) chosen by Google, not developer. [doc-stated]","who":"human_required","source_url":"https://support.google.com/cloud/answer/13465431"},
+  {"step":"Annual re-assessment","detail":"Every 12 months from previous LOV effective date; comprehensive retest even if no changes. [doc-stated]","who":"human_required","source_url":"https://support.google.com/cloud/answer/13463816"}
+ ],
+ "approval": {
+  "required": true,
+  "type": "OAuth app verification (sensitive scopes); verification + CASA security assessment (restricted scopes); brand verification for name/logo. Exceptions: personal use/small known group under user cap, Testing-status projects, Internal Workspace-only apps, service accounts with no user data.",
+  "typical_wait": "Sensitive: 'typically 3-5 business days' [doc-stated]. Restricted: 'can potentially take several weeks' [doc-stated]. Brand verification: automated minutes; 2-3 business days if branding changed [doc-stated]. CASA assessor duration: no official number found [unverified]. Submission page itself states no timeline.",
+  "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"
+ },
+ "effort_estimate": "[inferred] Sensitive-only (gmail.send, addons sensitive): moderate, days of prep plus ~3-5 business days review. Restricted (readonly/modify/compose/etc.) with a server backend: heavy, weeks-plus, paid third-party lab assessment, then yearly repeat. Cost of CASA: not stated in any official page fetched [unverified]; do not assume a figure.",
+ "gotchas": [
+  {"text":"[doc-stated] Testing status: max 100 test users; authorizations and refresh tokens expire 7 days after consent (does not apply to only openid/email/profile scopes).","source_url":"https://support.google.com/cloud/answer/15549945"},
+  {"text":"[doc-stated] 100-user cap in production while scopes unapproved: lifetime total of users who can grant, cannot be reset.","source_url":"https://support.google.com/cloud/answer/15549945"},
+  {"text":"[doc-stated] Other refresh-token killers: unused 6 months, user password change when token has Gmail scopes, max 100 live refresh tokens per account per client (oldest silently invalidated).","source_url":"https://developers.google.com/identity/protocols/oauth2#expiration"},
+  {"text":"[doc-stated] Apps in Testing aren't eligible for verification; must click Publish App first.","source_url":"https://support.google.com/cloud/answer/13461325"},
+  {"text":"[doc-stated] Consent screen cannot be deleted once configured.","source_url":"https://developers.google.com/workspace/guides/configure-oauth-consent"},
+  {"text":"[doc-stated] Branding verification result expires after 7 days if not published.","source_url":"https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"},
+  {"text":"[doc-stated] Terminology: Google pages say Letter of Validation (LOV) in one place and LOA in another; ADA uses Assurance Levels AL1/AL2, not Tier 1/2/3. 'Tier 2' as commonly used maps to AL2 lab-tested [inferred]; no Tier 3 on ADA tiering page.","source_url":"https://appdefensealliance.dev/casa/casa-tiering"},
+  {"text":"[doc-stated] Google, not the developer, determines CASA level; stays AL2 once validated at AL2.","source_url":"https://support.google.com/cloud/answer/13465431"},
+  {"text":"[doc-stated] ADA says onboarding of new labs is paused (Linux Foundation migration); 9 authorized labs listed.","source_url":"https://appdefensealliance.dev/casa/casa-assessors"}
+ ],
+ "scopes_notes": "[doc-stated] Non-sensitive: gmail.labels, gmail.addons.current.action.compose, gmail.addons.current.message.action. Sensitive: gmail.send, gmail.addons.current.message.metadata, gmail.addons.current.message.readonly. Restricted: mail.google.com, gmail.readonly, gmail.compose, gmail.insert, gmail.modify, gmail.metadata, gmail.settings.basic, gmail.settings.sharing (admin/domain-wide delegation only). Security assessment required if restricted-scope data is stored/transmitted on servers (or accessible via third-party server). Even gmail.compose and gmail.metadata are restricted.",
+ "blockers_and_workarounds": [
+  "Personal/own-mailbox use: stay in Testing, add yourself as test user, accept 7-day re-auth [doc-stated exceptions]; or Internal user type if on Workspace org (no review) [doc-stated].",
+  "Prefer gmail.send (sensitive) or gmail.labels (non-sensitive) over restricted scopes where feature allows [doc-stated guidance].",
+  "Local-only apps that never store/transmit data on servers may avoid CASA [inferred from 'stores or transmits on servers' wording]; verification itself still required.",
+  "CASA Accelerator maps existing certifications to reduce checks [doc-stated].",
+  "Service account + domain-wide delegation for a customer's Workspace [doc-stated mention; still needs verification if restricted/sensitive for domain-wide installs]."
+ ],
+ "unverified": [
+  "CASA assessment cost (no official figure found)",
+  "CASA assessor turnaround time (no official figure found)",
+  "Consequences of missing annual reassessment (page silent)",
+  "Whether current CASA AL2 includes a self-scan option (ADA tiering page mentions only lab-tested)",
+  "Review timeline for sensitive scopes of 3-5 business days appears only on developers.google.com page, not on support.google.com submission page"
+ ]
+}

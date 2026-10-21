@@ -1,0 +1,223 @@
+{
+  "app": "LinkedIn",
+  "website": "https://www.linkedin.com/developers/apps",
+  "category": "Social / Professional network",
+  "summary": "LinkedIn has two very different paths. Sign in with LinkedIn and posting as a member are self-serve once you have an app tied to a verified Company Page. Anything organizational (Pages, ads, analytics) is partner-gated, with no published review time, and individuals are likely rejected.",
+  "difficulty": "partner-gated",
+  "time_to_first_connection": "Self-serve products: minutes to about an hour of clicking (inferred; docs state no review step)",
+  "time_to_production": "Self-serve: no review step documented. Community Management API and other partner products: no official figure; two stages (Development then Standard tier) plus a screen recording and test credentials.",
+  "effort": "Create a LinkedIn Page, create and verify the app with a Page super admin, add products. For org-level APIs: legal organization, business email, website, privacy policy, a separate new app, and a Standard-tier application.",
+  "approval": {
+    "required": true,
+    "kind": "None for self-serve products (OpenID Connect sign-in, Share on LinkedIn). Application and review for partner products (Advertising, Community Management, Lead Sync, Conversions, Matched Audiences). Sales Navigator for approved partners only; Compliance closed.",
+    "who_reviews": "LinkedIn partner/API review team; Page super admin for app verification",
+    "stated_wait": "No official figure. Restricted APIs are evaluated case by case with no fixed timeline.",
+    "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/increasing-access"
+  },
+  "steps": [
+    {
+      "title": "Create or have a LinkedIn Page (Company Page)",
+      "detail": "Quick Start lists creating a LinkedIn Page as step 1 for Marketing APIs. Evidence label: doc-stated (Marketing quick-start); for self-serve products the page requirement is doc-stated only by a secondary source (dev.to) -> unverified in official docs.",
+      "owner": "developer_must_do",
+      "evidence": "unverified",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/quick-start"
+    },
+    {
+      "title": "Create app in Developer Portal",
+      "detail": "Go to /developers/apps/new. Associate the app with the Company Page. .",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/quick-start"
+    },
+    {
+      "title": "Page admin verifies the app (app verification)",
+      "detail": "Developer generates a verification URL; a Page (super) admin approves it. Secondary source says instant if you are the admin yourself (label: unverified in official docs; official LinkedIn help page a1665329 could not be fetched, robots-blocked). CMA review doc-stated that a super admin of the Page must verify.",
+      "owner": "developer_must_do",
+      "evidence": "unverified",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "title": "Add self-serve products on Products tab",
+      "detail": "'Sign in with LinkedIn using OpenID Connect' (scopes openid, profile, email) and 'Share on LinkedIn' (w_member_social). Docs say these are self-serve Open Permissions; docs do not state timing or any review step . Secondary source says tick box + accept terms, no queue.",
+      "owner": "agent_can_do",
+      "evidence": "inferred",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access"
+    },
+    {
+      "title": "Register redirect URL on Auth tab; copy Client ID/Secret",
+      "detail": "Absolute HTTPS URL, no query params or fragment; must exactly match redirect_uri .",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow"
+    },
+    {
+      "title": "Run 3-legged authorization code flow",
+      "detail": "Member must log in and consent in browser; auth code lasts 30 minutes . Token endpoint https://www.linkedin.com/oauth/v2/accessToken; userinfo https://api.linkedin.com/v2/userinfo; sub is pairwise per app.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2"
+    },
+    {
+      "title": "For partner-gated APIs: request product and complete access form",
+      "detail": "Products tab -> request Advertising API / Community Management API etc.; fill access form; Dev tier first, then separately apply for Standard tier (screen recording, test credentials, privacy policy).",
+      "owner": "needs_provider_review",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "A LinkedIn Page (Company Page) and a Page super admin to verify the app.",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "text": "Community Management API: registered legal organization with a commercial use case, verified business email, website/domain and privacy policy.",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "text": "HTTPS redirect URL with no query parameters or fragment, exactly matching redirect_uri.",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow"
+    }
+  ],
+  "composio": {
+    "slug": "linkedin",
+    "managed_oauth_available": true,
+    "note": "Composio can supply the OAuth app so you can start without registering one; users see 'Composio' on the consent screen, scopes are Composio's defaults, and rate-limit quota is shared. Register your own app (this guide) for production branding, custom scopes, a dedicated quota, faster polling, or private instances.",
+    "source_url": "https://docs.composio.dev/toolkits/linkedin"
+  },
+  "gotchas": [
+    {
+      "text": "Access tokens last 60 days (expires_in 5184000). Refresh tokens are NOT available to ordinary apps; programmatic refresh tokens only for approved Marketing Developer Platform partners (365-day fixed TTL, access token 60 days). Otherwise repeat the auth flow.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens"
+    },
+    {
+      "text": "Programmatic refresh doc sample responses are internally inconsistent (86400 expires_in; minute-like values); check real responses.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens"
+    },
+    {
+      "text": "Community Management API: only registered legal organizations with commercial use cases; personal email fails vetting; need verified business email, website/domain, privacy policy.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "text": "If CMA rejected you cannot reapply with the same app; must create a new app.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "text": "Development tier Community Management app must be a new app with no other API product; page posting therefore needs a separate app from Share/Sign-in app. Dev tier limits: 500 calls/app/day, 100/member/day. Must integrate within 12 months.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview"
+    },
+    {
+      "text": "App name/logo cannot include LinkedIn or Microsoft names/logos (e.g. 'Linked', 'In').",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "text": "Share on LinkedIn rate limits: 150 requests/member/day, 100,000/app/day; OIDC userinfo 500/member/day. Page metadata dates are old (2021/2023/2025) so verify in portal.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin"
+    },
+    {
+      "text": "Changing scopes requires users to re-authenticate; requesting a different scope than previously granted invalidates earlier tokens.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow"
+    },
+    {
+      "text": "LinkedIn may monitor and suspend access post-approval; may decline Standard upgrade even if minimums met.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/increasing-access"
+    },
+    {
+      "text": "Marketing API versions sunset regularly (202511 sunsets Nov 16, 2026); LinkedIn-Version header required for versioned APIs.",
+      "evidence": "doc-stated",
+      "source_url": "https://learn.microsoft.com/en-us/linkedin/marketing/increasing-access"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "You want to post as a Company Page but are an individual or small team without a legal organization.",
+      "what_to_do": "Org posting has no self-serve path. Post as the member via Share on LinkedIn instead."
+    },
+    {
+      "blocker": "Community Management application rejected.",
+      "what_to_do": "You cannot reapply with the same app; create a new app and fix the stated gaps first."
+    },
+    {
+      "blocker": "No refresh tokens for ordinary apps (access tokens last 60 days).",
+      "what_to_do": "Re-run the OAuth flow roughly every 60 days; programmatic refresh is only for approved Marketing Developer Platform partners."
+    },
+    {
+      "blocker": "Page super admin unavailable to verify your app.",
+      "what_to_do": "Get a super admin of the associated Page to approve the verification link; an agent cannot do this for you."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Draft the app description, privacy policy and access-form answers",
+      "Implement the authorization code flow and token re-auth handling",
+      "Plan the separate app needed for Community Management"
+    ],
+    "human_must": [
+      "Create or hold the LinkedIn Page and have a super admin verify the app",
+      "Log in and consent as a member to authorize",
+      "Record the Standard-tier screen recording and submit partner access forms"
+    ]
+  },
+  "claims": [],
+  "not_tested": "Based on reading official documentation only. No app was registered or submitted for approval, so UI labels, current form fields and real-world wait times are not verified by hands-on testing.",
+  "uncertain": [
+    "Whether self-serve products are granted instantly and whether the Company Page is strictly required to create any app (official pages fetched did not state it; dev.to secondary source says required and verification instant for admin).",
+    "Exact app-verification flow (official help page a1665329 blocked by robots).",
+    "Any typical review duration for Advertising/Community Management access: no official number found.",
+    "Sales Navigator (SNAP) application process and timing: docs only say approved partners; no details fetched.",
+    "Talent/ATS partner application timing: none fetched.",
+    "Whether Share on LinkedIn ugcPosts is superseded by the /rest/posts API in current docs (dev.to cites posts endpoint; official page shows ugcPosts, dated)."
+  ],
+  "sources": [
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow",
+      "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access",
+      "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-",
+      "url": "https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin",
+      "url": "https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/marketing/quick-start",
+      "url": "https://learn.microsoft.com/en-us/linkedin/marketing/quick-start"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/marketing/increasing-access",
+      "url": "https://learn.microsoft.com/en-us/linkedin/marketing/increasing-access"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review",
+      "url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management-app-review"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-ove",
+      "url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/community-management-overview"
+    },
+    {
+      "title": "learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens",
+      "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs, then human-reviewed overlays"
+  }
+}

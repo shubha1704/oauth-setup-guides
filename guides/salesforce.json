@@ -1,0 +1,219 @@
+{
+  "app": "Salesforce",
+  "website": "https://www.salesforce.com",
+  "category": "CRM",
+  "summary": "Salesforce uses OAuth 2.0 through an app registered inside a Salesforce org. You can create one for free in a Developer Edition org and use it for development straight away. There is no central marketplace approval for OAuth itself, but each customer org's admin may need to install or approve your app, and a public AppExchange listing needs a security review.",
+  "difficulty": "moderate",
+  "time_to_first_connection": "Likely under 1 hour with a Developer Edition org (inferred: free signup plus a form-based app setup; no official figure)",
+  "time_to_production": "no official figure",
+  "effort": "Sign up for a free Developer Edition org, create an External Client App (Connected App creation is restricted as of Spring '26) with a callback URL and scopes, and pick the right distribution state. For customer orgs, prepare instructions so their admin can install the app and set Permitted Users, or grant the Approve Uninstalled Connected Apps permission. AppExchange listing and security review are only needed if you want to be listed publicly.",
+  "approval": {
+    "required": false,
+    "kind": "No Salesforce approval is needed to start; per-org admin install/approval applies to customer orgs, and AppExchange security review applies only to public listing",
+    "who_reviews": "Each customer org's Salesforce admin (install and OAuth policies); Salesforce Partner/AppExchange security review team for AppExchange listings",
+    "stated_wait": null,
+    "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+  },
+  "steps": [
+    {
+      "title": "Create a Developer Edition org",
+      "detail": "Sign up at developer.salesforce.com/signup. Salesforce describes Developer Edition as free and intended for testing and development.",
+      "owner": "developer_must_do",
+      "source_url": "https://developer.salesforce.com/docs/platform/connect-rest-api/guide/quickstart_dev_org"
+    },
+    {
+      "title": "Create an External Client App",
+      "detail": "In Setup, open App Manager, choose New External Client App, fill in name, contact email and Distribution State (Local or Packaged), check Enable OAuth Settings, type your callback URL, and select scopes (for example api, refresh_token/offline_access, id/profile/email as needed). The Mobile SDK guide example also unchecks 'Require Secret for Web Server Flow'; for a server-side agent backend you will likely keep the secret requirement (inferred). Use the callback URL your OAuth broker or backend provides.",
+      "owner": "developer_must_do",
+      "source_url": "https://developer.salesforce.com/docs/platform/mobile-sdk/guide/eca-create.html"
+    },
+    {
+      "title": "Collect client credentials and test in your own org",
+      "detail": "Retrieve the consumer key and secret from the app's settings and run the OAuth authorization flow against your Developer Edition org. Use login.salesforce.com for production and Developer Edition orgs, or the customer's My Domain URL.",
+      "owner": "developer_must_do",
+      "source_url": null
+    },
+    {
+      "title": "Have each customer org admin install or approve the app",
+      "detail": "Since September 2025 Salesforce blocks uninstalled connected apps for most users. Admins can install the app and set Permitted Users to 'Admin approved users are pre-authorized', or grant the Approve Uninstalled Connected Apps permission (or the broader Use Any API Client) to the authorizing user.",
+      "owner": "developer_must_do",
+      "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "title": "Optional: AppExchange listing and security review",
+      "detail": "Only needed to be listed publicly. Salesforce's ISVforce guide says a security review fee applies to freemium, paid and paid add-on solutions and is waived for free solutions. Review duration is not stated on the page read.",
+      "owner": "needs_provider_review",
+      "source_url": "https://developer.salesforce.com/docs/atlas.en-us.242.0.packagingGuide.meta/packagingGuide/security_review_fees.htm"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "A Salesforce org where you can create apps (a free Developer Edition org works). The user needs API Enabled permission on their profile.",
+      "source_url": "https://developer.salesforce.com/docs/platform/connect-rest-api/guide/quickstart_dev_org"
+    },
+    {
+      "text": "An External Client App with OAuth enabled, a callback URL and selected scopes (api, refresh_token/offline_access, and identity scopes are the common set in Salesforce's own example).",
+      "source_url": "https://developer.salesforce.com/docs/platform/mobile-sdk/guide/eca-create.html"
+    },
+    {
+      "text": "Customer org admins must be able to install the app or grant the Approve Uninstalled Connected Apps permission to the connecting user.",
+      "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "text": "A Salesforce My Domain / instance login URL for each customer org (Composio notes a missing subdomain causes a URL_NOT_RESET error).",
+      "source_url": "https://docs.composio.dev/toolkits/salesforce"
+    }
+  ],
+  "gotchas": [
+    {
+      "text": "Creating new Connected Apps is restricted as of Spring '26; Salesforce recommends External Client Apps, and says to contact Salesforce Support to create a connected app anyway. Existing connected apps keep working.",
+      "source_url": "https://developer.salesforce.com/docs/platform/api-rest/guide/intro-oauth-and-connected-apps.html"
+    },
+    {
+      "text": "Since early September 2025, uninstalled connected apps are blocked for most users in a customer org, so OAuth can fail with OAUTH_APPROVAL_ERROR_GENERIC until an admin installs the app or grants the permission. The error cause list comes partly from a vendor blog (weak evidence).",
+      "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "text": "Apps using the OAuth 2.0 device flow lose access even if previously authorized.",
+      "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "text": "Salesforce allows only five active refresh tokens per user per app (per Composio's FAQ); further authorizations may revoke the oldest.",
+      "source_url": "https://docs.composio.dev/toolkits/salesforce"
+    },
+    {
+      "text": "Vendor blog (weak evidence) reports other causes of the generic approval error: scope mismatch, IP restrictions, sandbox refresh removing installed apps, and PKCE enforcement from Spring '26. Verify against Salesforce release notes.",
+      "source_url": "https://www.nango.dev/blog/fix-salesforce-oauth-approval-error-generic"
+    },
+    {
+      "text": "Developer Edition has a 5 MB data storage cap and is meant for testing and development, not production data.",
+      "source_url": "https://developer.salesforce.com/docs/platform/connect-rest-api/guide/quickstart_dev_org"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Customer admin has not installed the app and the connecting user lacks Approve Uninstalled Connected Apps",
+      "what_to_do": "Give admins instructions to install the app and set Permitted Users to 'Admin approved users are pre-authorized', or temporarily grant the permission to the authorizing user."
+    },
+    {
+      "blocker": "Cannot create a Connected App in the org (restricted as of Spring '26)",
+      "what_to_do": "Create an External Client App instead; contact Salesforce Support only if a connected app is truly required."
+    },
+    {
+      "blocker": "Customer org uses IP restrictions or other org policies",
+      "what_to_do": "Have the admin relax IP restrictions for the app or allowlist your server IPs (blog-sourced, verify)."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Run the OAuth authorization flow, store tokens and refresh them once client credentials exist",
+      "Surface Salesforce error codes (such as OAUTH_APPROVAL_ERROR_GENERIC) and show admin instructions"
+    ],
+    "human_must": [
+      "Sign up for the Developer Edition org and create the External Client App in Setup",
+      "Have each customer's Salesforce admin install or approve the app and set OAuth policies",
+      "Submit the AppExchange listing and pass security review if a public listing is wanted"
+    ]
+  },
+  "claims": [
+    {
+      "claim": "Developer Edition is free and intended for testing and development, with a 5 MB data cap.",
+      "evidence": "doc-stated",
+      "source_url": "https://developer.salesforce.com/docs/platform/connect-rest-api/guide/quickstart_dev_org"
+    },
+    {
+      "claim": "Creating connected apps is restricted as of Spring '26; external client apps are recommended.",
+      "evidence": "doc-stated",
+      "source_url": "https://developer.salesforce.com/docs/platform/api-rest/guide/intro-oauth-and-connected-apps.html"
+    },
+    {
+      "claim": "External Client App setup involves App Manager, Enable OAuth Settings, callback URL, scopes and a Distribution State of Local or Packaged.",
+      "evidence": "doc-stated",
+      "source_url": "https://developer.salesforce.com/docs/platform/mobile-sdk/guide/eca-create.html"
+    },
+    {
+      "claim": "Uninstalled connected apps have been blocked for most users since early September 2025; Approve Uninstalled Connected Apps and Use Any API Client permissions bypass this.",
+      "evidence": "doc-stated",
+      "source_url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "claim": "Security review fee is waived for free solutions; freemium, paid and paid add-on solutions pay $999 per review type, per an older (v242) ISVforce guide page.",
+      "evidence": "doc-stated",
+      "source_url": "https://developer.salesforce.com/docs/atlas.en-us.242.0.packagingGuide.meta/packagingGuide/security_review_fees.htm"
+    },
+    {
+      "claim": "A newer fee figure may apply; the page read is marked as an older version.",
+      "evidence": "unverified",
+      "source_url": null
+    },
+    {
+      "claim": "An external client app used for OAuth in other customers' orgs should use the Packaged distribution state and be installed in those orgs.",
+      "evidence": "inferred",
+      "source_url": "https://developer.salesforce.com/docs/platform/mobile-sdk/guide/eca-create.html"
+    },
+    {
+      "claim": "Review wait time for AppExchange security review.",
+      "evidence": "unverified",
+      "source_url": null
+    },
+    {
+      "claim": "Composio offers managed OAuth for Salesforce (auth schemes OAuth2 and S2S_OAUTH2).",
+      "evidence": "doc-stated",
+      "source_url": "https://docs.composio.dev/toolkits/salesforce"
+    }
+  ],
+  "composio": {
+    "slug": "salesforce",
+    "managed_oauth_available": true,
+    "note": "The Composio Salesforce toolkit page lists OAuth2 and S2S_OAUTH2 and says Composio-managed OAuth is available, so a developer can start without registering their own app. The page does not describe scopes, redirect URI, or custom auth config steps, so what you give up (own branding on the consent screen, custom scopes, own API quota) is inferred, not stated. You would register your own app for custom branding, scope control, or if customer admins require a known app name and publisher to approve. Composio's FAQ notes the subdomain must be configured (else URL_NOT_RESET) and the app must be installed in the org (else OAUTH_APPROVAL_ERROR_GENERIC), so customer-org admin approval may still apply when using the managed app.",
+    "source_url": "https://docs.composio.dev/toolkits/salesforce"
+  },
+  "not_tested": "Only documentation was read. No Salesforce org, External Client App, or OAuth flow was created or tested, and no Composio connection was attempted.",
+  "uncertain": [
+    "No official AppExchange security review duration was found; time_to_production has no official figure.",
+    "The $999 security review fee comes from an older version of the ISVforce guide and may have changed.",
+    "Whether a customer-org admin must install a Composio-managed or your own external client app in every case was not confirmed in an official page; the Packaged vs Local distribution guidance is inferred.",
+    "The exact Spring '26 restriction details on connected apps and PKCE enforcement were not confirmed beyond the quoted lines; PKCE and IP restriction causes come from a vendor blog.",
+    "Composio's page does not state scopes, redirect URI, or custom auth config steps.",
+    "Official help.salesforce.com pages (such as article 005132365) could not be fetched directly; the admin.salesforce.com blog was used instead."
+  ],
+  "sources": [
+    {
+      "title": "Authorization Through External Client Apps or Connected Apps and OAuth 2.0",
+      "url": "https://developer.salesforce.com/docs/platform/api-rest/guide/intro-oauth-and-connected-apps.html"
+    },
+    {
+      "title": "Create an External Client App (Mobile SDK guide)",
+      "url": "https://developer.salesforce.com/docs/platform/mobile-sdk/guide/eca-create.html"
+    },
+    {
+      "title": "Step One: Sign up for Salesforce Developer Edition",
+      "url": "https://developer.salesforce.com/docs/platform/connect-rest-api/guide/quickstart_dev_org"
+    },
+    {
+      "title": "Get Ready for Changes to Connected App Usage Restrictions (Salesforce Admin blog)",
+      "url": "https://admin.salesforce.com/blog/2025/get-ready-for-changes-to-connected-app-usage-restrictions"
+    },
+    {
+      "title": "ISVforce Guide: Security Review Fees (v242)",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.242.0.packagingGuide.meta/packagingGuide/security_review_fees.htm"
+    },
+    {
+      "title": "Composio Salesforce toolkit",
+      "url": "https://docs.composio.dev/toolkits/salesforce"
+    },
+    {
+      "title": "Nango: fix OAUTH_APPROVAL_ERROR_GENERIC (vendor blog, weak evidence)",
+      "url": "https://www.nango.dev/blog/fix-salesforce-oauth-approval-error-generic"
+    },
+    {
+      "title": "MoveData: Salesforce connected app usage restrictions (vendor docs, weak evidence)",
+      "url": "https://docs.movedata.io/troubleshooting/connection-and-authentication/salesforce-connected-app-usage-restrictions/"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs using the same prompt and schema as live generation; spot-checked, see VERIFICATION.md"
+  }
+}

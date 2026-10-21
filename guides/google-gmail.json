@@ -1,0 +1,257 @@
+{
+  "app": "Google (Gmail API)",
+  "website": "https://console.cloud.google.com/auth (Google Auth platform)",
+  "category": "Email / Google Workspace",
+  "summary": "Gmail has the heaviest approval path of the apps studied. Most useful Gmail scopes are 'restricted', so production use means OAuth verification plus an annual third-party CASA security assessment. Testing mode works immediately but caps you at 100 users and 7-day tokens.",
+  "difficulty": "hard",
+  "time_to_first_connection": "Under an hour in Testing mode (inferred); tokens expire after 7 days",
+  "time_to_production": "Sensitive scopes: Google says typically 3-5 business days. Restricted scopes: Google says potentially several weeks, plus CASA; assessor turnaround and cost have no official figure.",
+  "effort": "Own a domain with a public home page and privacy policy, verify it in Search Console, justify every scope, record a demo video, answer Trust & Safety emails, and (restricted) pass a lab-run CASA assessment every 12 months.",
+  "approval": {
+    "required": true,
+    "kind": "OAuth app verification (sensitive scopes); verification plus CASA security assessment (restricted scopes); brand verification. Not needed for Testing mode, Internal Workspace-only apps, or service accounts without user data.",
+    "who_reviews": "Google Trust & Safety; an App Defense Alliance-authorized lab for CASA",
+    "stated_wait": "Sensitive: typically 3-5 business days. Restricted: can potentially take several weeks. Brand verification: usually minutes, 2-3 business days if branding changed.",
+    "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"
+  },
+  "steps": [
+    {
+      "title": "Create/select Cloud project and enable Gmail API",
+      "detail": "Create project, enable Gmail API in API Library.",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "title": "Configure consent screen (Google Auth platform: Branding, Audience, Contact info)",
+      "detail": "App name, support email, user type Internal (Workspace org only) or External, contact email, accept API Services User Data Policy. Consent screen cannot be deleted once configured. Console clicks are likely a human browser session; for steps, for who.",
+      "owner": "developer_must_do",
+      "evidence": "inferred",
+      "source_url": "https://developers.google.com/workspace/guides/configure-oauth-consent"
+    },
+    {
+      "title": "Add Gmail scopes under Data Access and test users under Audience",
+      "detail": "Choose narrowest scopes. Test users only for External apps in Testing.",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/workspace/guides/configure-oauth-consent"
+    },
+    {
+      "title": "Create OAuth client credentials",
+      "detail": "Pick client type (web, desktop, etc.).",
+      "owner": "agent_can_do",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "title": "Run in Testing status",
+      "detail": "Up to 100 test users; authorizations/refresh tokens expire after 7 days; users see unverified-app warning.",
+      "owner": "developer_must_do",
+      "evidence": "unverified",
+      "source_url": "https://support.google.com/cloud/answer/15549945"
+    },
+    {
+      "title": "Own a domain: host public home page + privacy policy on same domain; verify domain in Search Console",
+      "detail": "Home page must be public, not Play Store/Facebook; privacy policy linked on consent screen and on same domain; verify with Owner/Editor account.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "title": "Verify Branding, then publish branding",
+      "detail": "Automated check usually minutes; branding must be published before data access verification; compliant result expires after 7 days if unpublished.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "title": "Publish app to In production, Prepare for Verification, justify scopes, upload demo video, Submit",
+      "detail": "Apps in Testing are not eligible for verification. Demo video: unlisted YouTube, English, shows full OAuth flow, app name on consent screen, client ID in address bar, and each sensitive/restricted scope in use. Per-scope justification incl. why narrower scope won't work.",
+      "owner": "developer_must_do",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "title": "Respond to Trust & Safety emails",
+      "detail": "Review pauses until you respond; all comms by email to project owners/editors.",
+      "owner": "needs_provider_review",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "title": "If restricted scopes and server-side storage/transit: CASA security assessment",
+      "detail": "Final step of restricted review; Google contacts you to start; done by an ADA-authorized lab, yields a Letter of Validation (Google's own pages also call it a Letter of Assessment, LOA). Level (AL1/AL2) chosen by Google, not developer.",
+      "owner": "needs_provider_review",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13465431"
+    },
+    {
+      "title": "Annual re-assessment",
+      "detail": "Every 12 months from previous LOV effective date; comprehensive retest even if no changes.",
+      "owner": "needs_provider_review",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13463816"
+    }
+  ],
+  "requirements": [
+    {
+      "text": "Public home page and privacy policy on the same domain, domain verified in Search Console.",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "text": "Unlisted English YouTube demo video showing the full OAuth flow and each sensitive/restricted scope in use.",
+      "source_url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "text": "Restricted scopes (gmail.readonly, modify, compose, metadata, insert, mail.google.com...) with server-side storage or transit require a CASA assessment.",
+      "source_url": "https://developers.google.com/workspace/gmail/api/auth/scopes"
+    }
+  ],
+  "composio": {
+    "slug": "google-gmail",
+    "managed_oauth_available": true,
+    "note": "Composio can supply the OAuth app so you can start without registering one; users see 'Composio' on the consent screen, scopes are Composio's defaults, and rate-limit quota is shared. Register your own app (this guide) for production branding, custom scopes, a dedicated quota, faster polling, or private instances.",
+    "source_url": "https://docs.composio.dev/toolkits/gmail"
+  },
+  "gotchas": [
+    {
+      "text": "Testing status: max 100 test users; authorizations and refresh tokens expire 7 days after consent (does not apply to only openid/email/profile scopes).",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/15549945"
+    },
+    {
+      "text": "While your app shows the 'unverified app' screen it can gain only 100 new users over the project's lifetime, and this cannot be reset. This is separate from the 100 test-user limit in Testing status.",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/15549945"
+    },
+    {
+      "text": "Other refresh-token killers: unused 6 months, user password change when token has Gmail scopes, max 100 live refresh tokens per account per client (oldest silently invalidated).",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2#expiration"
+    },
+    {
+      "text": "Apps in Testing aren't eligible for verification; must click Publish App first.",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "text": "Consent screen cannot be deleted once configured.",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/workspace/guides/configure-oauth-consent"
+    },
+    {
+      "text": "Branding verification result expires after 7 days if not published.",
+      "evidence": "doc-stated",
+      "source_url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "text": "Terminology: Google pages say Letter of Validation (LOV) in one place and LOA in another; ADA uses Assurance Levels AL1/AL2, not Tier 1/2/3. 'Tier 2' as commonly used maps to AL2 lab-tested ; no Tier 3 on ADA tiering page.",
+      "evidence": "inferred",
+      "source_url": "https://appdefensealliance.dev/casa/casa-tiering"
+    },
+    {
+      "text": "Google, not the developer, determines CASA level; stays AL2 once validated at AL2.",
+      "evidence": "doc-stated",
+      "source_url": "https://support.google.com/cloud/answer/13465431"
+    },
+    {
+      "text": "ADA says onboarding of new labs is paused (Linux Foundation migration); 9 authorized labs listed.",
+      "evidence": "doc-stated",
+      "source_url": "https://appdefensealliance.dev/casa/casa-assessors"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker": "Restricted scope needed (even gmail.compose and gmail.metadata are restricted).",
+      "what_to_do": "Prefer gmail.send (sensitive) or gmail.labels (non-sensitive) if the feature allows; otherwise budget for CASA."
+    },
+    {
+      "blocker": "100-user lifetime cap while scopes are unapproved in production; cannot be reset.",
+      "what_to_do": "Do not publish to production with real users until you are ready to submit for verification."
+    },
+    {
+      "blocker": "Testing status: 7-day refresh tokens and apps in Testing are not eligible for verification.",
+      "what_to_do": "Use Testing only for development; click Publish App before submitting for verification."
+    },
+    {
+      "blocker": "CASA cost and turnaround are not published; ADA has paused onboarding new assessor labs (9 listed).",
+      "what_to_do": "Contact an authorized lab early for a quote; consider the CASA Accelerator if you hold other certifications."
+    }
+  ],
+  "agent_vs_human": {
+    "agent_can": [
+      "Pick the narrowest Gmail scopes and draft per-scope justifications",
+      "Draft privacy policy and home page content",
+      "Write the OAuth client code and a demo-video script"
+    ],
+    "human_must": [
+      "Configure the consent screen and own/verify the domain",
+      "Record and upload the demo video, submit for verification",
+      "Respond to Trust & Safety emails; contract and pass the CASA lab assessment"
+    ]
+  },
+  "claims": [],
+  "not_tested": "Based on reading official documentation only. No app was registered or submitted for approval, so UI labels, current form fields and real-world wait times are not verified by hands-on testing.",
+  "uncertain": [
+    "CASA assessment cost (no official figure found)",
+    "CASA assessor turnaround time (no official figure found)",
+    "Consequences of missing annual reassessment (page silent)",
+    "Whether current CASA AL2 includes a self-scan option (ADA tiering page mentions only lab-tested)",
+    "Review timeline for sensitive scopes of 3-5 business days appears only on developers.google.com page, not on support.google.com submission page"
+  ],
+  "sources": [
+    {
+      "title": "support.google.com/cloud/answer/13463073",
+      "url": "https://support.google.com/cloud/answer/13463073"
+    },
+    {
+      "title": "support.google.com/cloud/answer/13461325",
+      "url": "https://support.google.com/cloud/answer/13461325"
+    },
+    {
+      "title": "support.google.com/cloud/answer/15549945",
+      "url": "https://support.google.com/cloud/answer/15549945"
+    },
+    {
+      "title": "support.google.com/cloud/answer/13465431",
+      "url": "https://support.google.com/cloud/answer/13465431"
+    },
+    {
+      "title": "support.google.com/cloud/answer/13463816",
+      "url": "https://support.google.com/cloud/answer/13463816"
+    },
+    {
+      "title": "developers.google.com/workspace/gmail/api/auth/scopes",
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes"
+    },
+    {
+      "title": "developers.google.com/workspace/guides/configure-oauth-consent",
+      "url": "https://developers.google.com/workspace/guides/configure-oauth-consent"
+    },
+    {
+      "title": "developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verif",
+      "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification"
+    },
+    {
+      "title": "developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-veri",
+      "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"
+    },
+    {
+      "title": "developers.google.com/identity/protocols/oauth2#expiration",
+      "url": "https://developers.google.com/identity/protocols/oauth2#expiration"
+    },
+    {
+      "title": "appdefensealliance.dev/casa/casa-tiering",
+      "url": "https://appdefensealliance.dev/casa/casa-tiering"
+    },
+    {
+      "title": "appdefensealliance.dev/casa/casa-assessors",
+      "url": "https://appdefensealliance.dev/casa/casa-assessors"
+    }
+  ],
+  "generated": {
+    "live": false,
+    "researched": "2026-10-20",
+    "method": "agent research over official docs, then human-reviewed overlays"
+  }
+}

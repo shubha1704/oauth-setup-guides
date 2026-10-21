@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAuth Setup Guides</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1c1b19;--mut:#6b6a64;--line:#e4e2da;--card:#fff;--acc:#2b5fd9;
+--instant:#1f8a4c;--easy:#1f8a4c;--moderate:#b7791f;--hard:#c0392b;--partner-gated:#7b3fb5}
+@media(prefers-color-scheme:dark){:root{--bg:#161614;--fg:#ecebe6;--mut:#9a988f;--line:#2e2d29;--card:#1e1d1a;--acc:#7aa2ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:28px;margin:0 0 6px}h2{font-size:18px;margin:32px 0 10px}h3{font-size:15px;margin:0}
+p.sub{color:var(--mut);margin:0 0 22px}
+form{display:flex;gap:8px;margin-bottom:8px}
+input{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);font:inherit}
+button{padding:12px 18px;border:0;border-radius:10px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+button.ghost{background:transparent;color:var(--acc);border:1px solid var(--line);padding:8px 12px;font-size:14px}
+button:disabled{opacity:.5;cursor:wait}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;text-decoration:none;color:inherit;display:block}
+.card:hover{border-color:var(--acc)}.card p{margin:6px 0 0;color:var(--mut);font-size:14px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;text-transform:uppercase;letter-spacing:.03em}
+.b-instant,.b-easy{background:var(--easy)}.b-moderate{background:var(--moderate)}.b-hard{background:var(--hard)}.b-partner-gated{background:var(--partner-gated)}
+.ev{font-size:11px;padding:1px 6px;border-radius:6px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.ev-doc-stated{color:var(--easy);border-color:var(--easy)}.ev-inferred{color:var(--moderate);border-color:var(--moderate)}.ev-unverified{color:var(--hard);border-color:var(--hard)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.facts div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.facts small{display:block;color:var(--mut);text-transform:uppercase;font-size:11px;letter-spacing:.05em}
+ol.steps{padding-left:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 48px;margin:8px 0;position:relative}
+ol.steps li:before{content:counter(s);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;text-align:center;font-size:13px;line-height:24px;font-weight:700}
+.owner{font-size:12px;color:var(--mut)}.o-needs_provider_review{color:var(--moderate);font-weight:600}.o-developer_must_do{color:var(--hard);font-weight:600}.o-agent_can_do{color:var(--easy);font-weight:600}
+ul{padding-left:20px}li{margin:4px 0}a{color:var(--acc)}
+body{overflow-wrap:anywhere}pre,code{white-space:pre-wrap}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}form{flex-direction:column}}
+#log{font:13px ui-monospace,Menlo,monospace;color:var(--mut);margin:10px 0}
+.chip{display:inline-block;margin:3px 2px;padding:3px 10px;border:1px solid var(--line);border-radius:99px;font-size:13px;text-decoration:none;color:var(--mut);background:var(--card)}
+.chip.has{color:var(--fg);border-color:var(--easy);font-weight:600}.chip:hover{border-color:var(--acc)}
+.warn{border-left:4px solid var(--moderate)}.err{color:var(--hard)}
+nav a{font-size:14px;cursor:pointer}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : null);
+const link = (u, t) => (safeUrl(u) ? ` <a href="${esc(u)}" target="_blank" rel="noopener">${esc(t || "source")}</a>` : "");
+const ev = (e) => (e ? `<span class="ev ev-${esc(e)}">${esc(e)}</span> ` : "");
+const OWN = { agent_can_do: "Agent can do", developer_must_do: "You do this", needs_provider_review: "Provider review" };
+
+async function home() {
+  history.replaceState({}, "", "/");
+  const guides = await (await fetch("/api/guides")).json();
+  const dir = await (await fetch("/api/directory")).json();
+  $("#app").innerHTML = `
+    <h1>OAuth setup guides</h1>
+    <p class="sub">Before your agent can connect an app for your users, you may need your own OAuth app with the provider, and approval. Look up an app to see how hard that is, how long it takes, and what to do next.</p>
+    <form id="f"><input id="q" placeholder="App name or website, e.g. Notion, hubspot.com, Zoom" required maxlength="200"><button id="go">Generate guide</button></form>
+    <div id="log"></div>
+    <h2>Researched guides (${guides.length})</h2>
+    <div class="grid">${guides.map((g) => `
+      <a class="card" href="/g/${esc(g.slug)}" data-slug="${esc(g.slug)}">
+        <h3>${esc(g.app)} <span class="badge b-${esc(g.difficulty)}">${esc(g.difficulty)}</span></h3>
+        <p>${esc(g.time_to_production)}</p>
+        ${g.source === "generated" ? '<p><span class="ev">live-generated</span></p>' : ""}
+      </a>`).join("")}</div>
+    <h2>Composio directory <span class="owner">(${dir.length} toolkits; click one to generate its guide)</span></h2>
+    <p class="owner">Apps Composio supports. Ones with a guide open instantly; the rest are investigated live by the agent.</p>
+    <div id="dir">${dir.map((d) => `<a class="chip${d.has_guide ? " has" : ""}" href="/g/${esc(d.slug)}" data-gen="${esc(d.slug)}" data-has="${d.has_guide}">${esc(d.slug)}</a>`).join(" ")}</div>`;
+  document.querySelectorAll("#dir .chip").forEach((a) => a.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (a.dataset.has === "true") return show(a.dataset.gen);
+    $("#q").value = a.dataset.gen.replace(/_/g, " ");
+    $("#f").requestSubmit();
+    window.scrollTo(0, 0);
+  }));
+  document.querySelectorAll(".card").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); show(a.dataset.slug); }));
+  $("#f").addEventListener("submit", generate);
+}
+
+async function generate(e) {
+  e.preventDefault();
+  const q = $("#q").value.trim();
+  $("#go").disabled = true;
+  const log = $("#log");
+  log.innerHTML = "Starting agent…";
+  const res = await fetch("/api/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: q }) });
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const parts = buf.split("\n\n");
+    buf = parts.pop();
+    for (const p of parts) {
+      const m = p.match(/^event: (\w+)\ndata: (.*)$/s);
+      if (!m) continue;
+      const data = JSON.parse(m[2]);
+      if (m[1] === "status") log.innerHTML += `<div>${esc(data.message)}</div>`;
+      if (m[1] === "step") log.innerHTML += `<div>→ ${esc(data.tool === "web_search" ? "searching" : "reading")}: ${esc(data.input)}</div>`;
+      if (m[1] === "error") { log.innerHTML += `<div class="err">Failed: ${esc(data.message)}</div>`; $("#go").disabled = false; return; }
+      if (m[1] === "done") return show(data.slug);
+    }
+  }
+  $("#go").disabled = false;
+}
+
+function list(items, fn) { return items?.length ? `<ul>${items.map(fn).join("")}</ul>` : "<p class='owner'>None reported.</p>"; }
+
+async function show(slug) {
+  const r = await fetch(`/api/guides/${encodeURIComponent(slug)}`);
+  if (!r.ok) { $("#app").innerHTML = `<p>Guide not found. <a href="/">Back</a></p>`; return; }
+  const g = await r.json();
+  history.pushState({}, "", `/g/${slug}`);
+  const gen = g.generated || {};
+  $("#app").innerHTML = `
+    <nav><a href="/" id="back">← All guides</a></nav>
+    <h1>${esc(g.app)} <span class="badge b-${esc(g.difficulty)}">${esc(g.difficulty)}</span></h1>
+    <p class="sub">${esc(g.summary)}</p>
+    <button class="ghost" id="share">Copy shareable link</button> <button class="ghost" id="md">Copy as Markdown</button>
+    <p class="owner">${gen.live ? `Live-generated ${esc(gen.at)} by an agent reading the web. Treat as a strong starting point, not a verified fact sheet.` : `Researched ${esc(gen.researched)}: ${esc(gen.method)}.`}</p>
+    <h2>How long and how much work</h2>
+    <div class="facts">
+      <div><small>First working connection</small>${esc(g.time_to_first_connection)}</div>
+      <div><small>To production</small>${esc(g.time_to_production)}</div>
+      <div><small>Effort</small>${esc(g.effort)}</div>
+      <div><small>Approval</small>${g.approval?.required ? "Required" : "No platform review"}: ${esc(g.approval?.kind)}${g.approval?.stated_wait ? `<br><b>Stated wait:</b> ${esc(g.approval.stated_wait)}` : ""}${link(g.approval?.source_url)}</div>
+    </div>
+    ${g.composio ? `<h2>Do you need your own OAuth app?</h2>
+    <div class="panel"><b>${g.composio.managed_oauth_available === true ? "Composio can manage the OAuth app for you to start." : g.composio.managed_oauth_available === false ? "Composio does not manage an OAuth app for this one: you must register your own." : "Composio managed status not confirmed."}</b><br>${esc(g.composio.note)}${link(g.composio.source_url, "Composio page")}</div>` : ""}
+    <h2>Steps</h2>
+    <ol class="steps">${(g.steps || []).map((s) => `<li><b>${esc(s.title)}</b> ${ev(s.evidence)}<br>${esc(s.detail)}${link(s.source_url)}<br><span class="owner o-${esc(s.owner)}">${esc(OWN[s.owner] || s.owner)}</span></li>`).join("")}</ol>
+    <h2>Requirements</h2>${list(g.requirements, (x) => `<li>${esc(x.text)}${link(x.source_url)}</li>`)}
+    <h2>Nuances that affect setup</h2>${list(g.gotchas, (x) => `<li>${ev(x.evidence)}${esc(x.text)}${link(x.source_url)}</li>`)}
+    ${g.claims?.length ? `<h2>Key claims and the evidence behind them</h2>${list(g.claims, (c) => `<li>${ev(c.evidence)}${esc(c.claim)}${link(c.source_url)}</li>`)}` : ""}
+    <h2>If you hit a blocker</h2>${list(g.blockers, (b) => `<li><b>${esc(b.blocker)}</b><br>${esc(b.what_to_do)}</li>`)}
+    <h2>What an agent can do, and where you take over</h2>
+    <div class="two">
+      <div class="panel"><h3>Agent can</h3>${list(g.agent_vs_human?.agent_can, (x) => `<li>${esc(x)}</li>`)}</div>
+      <div class="panel"><h3>You must</h3>${list(g.agent_vs_human?.human_must, (x) => `<li>${esc(x)}</li>`)}</div>
+    </div>
+    <h2>What was tested, and what is uncertain</h2>
+    <div class="panel warn"><b>Tested:</b> ${esc(g.not_tested)}</div>
+    ${list(g.uncertain, (x) => `<li>${esc(x)}</li>`)}
+    <h2>Sources</h2>${list(g.sources, (s) => `<li>${link(s.url, s.title || s.url) || esc(s.title)}</li>`)}`;
+  $("#back").addEventListener("click", (e) => { e.preventDefault(); home(); });
+  $("#share").addEventListener("click", async () => { try { await navigator.clipboard.writeText(location.href); $("#share").textContent = "Copied"; } catch { prompt("Copy this link", location.href); } });
+  $("#md").addEventListener("click", async () => { try { await navigator.clipboard.writeText(toMarkdown(g)); $("#md").textContent = "Copied"; } catch { prompt("Copy this", toMarkdown(g)); } });
+  window.scrollTo(0, 0);
+}
+
+// Plain-text version of a guide, for pasting into a doc, ticket or chat.
+function toMarkdown(g) {
+  const L = (items, f) => (items || []).map(f).join("\n") || "- none";
+  return [
+    `# ${g.app}: OAuth setup (${g.difficulty})`, g.summary, "",
+    `- First connection: ${g.time_to_first_connection}`, `- To production: ${g.time_to_production}`, `- Effort: ${g.effort}`,
+    `- Approval: ${g.approval?.required ? "required" : "no platform review"}. ${g.approval?.kind || ""}`, "",
+    "## Steps", L(g.steps, (s, i) => `${i + 1}. **${s.title}** (${OWN[s.owner] || s.owner}): ${s.detail}${s.source_url ? ` [source](${s.source_url})` : ""}`), "",
+    "## Nuances", L(g.gotchas, (x) => `- ${x.text}`), "",
+    "## If you hit a blocker", L(g.blockers, (b) => `- **${b.blocker}**: ${b.what_to_do}`), "",
+    "## Not tested / uncertain", `- ${g.not_tested}`, L(g.uncertain, (x) => `- ${x}`), "",
+    `Link: ${location.href}`,
+  ].join("\n");
+}
+
+addEventListener("popstate", route);
+function route() { const m = location.pathname.match(/^\/g\/([^/]+)/); m ? show(decodeURIComponent(m[1])) : home(); }
+route();
+</script>
+</body>
+</html>

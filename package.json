@@ -1,0 +1,14 @@
+{
+  "name": "oauth-setup-guides",
+  "version": "0.1.0",
+  "description": "Look up any app, get an evidence-labeled guide to creating and getting approved for its OAuth app.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.mjs",
+    "ingest": "node scripts/ingest-drafts.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
